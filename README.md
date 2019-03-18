@@ -1,6 +1,10 @@
-## Usage
+# JSONP Filter
 
-Include jsonp-filter in your *pom.xml*:
+A J2EE Servlet filter to wrap JSON responses in a JSONP callback.
+
+## Getting Started
+
+Include the `com.earldouglas.jsonp-filter` dependency in your _pom.xml_:
 
 ```xml
 <dependencies>
@@ -12,7 +16,11 @@ Include jsonp-filter in your *pom.xml*:
 </dependencies>
 ```
 
-Add a `JsonPFilter` to your *web.xml*:
+## Usage
+
+### web.xml
+
+To use the filter with a _web.xml_ file, add the `<filter>` and the `<filter-mapping>`. For example:
 
 ```xml
 <filter>
@@ -25,7 +33,44 @@ Add a `JsonPFilter` to your *web.xml*:
 </filter-mapping>
 ```
 
-Optionally configure the callback parameter name (defaults to *callback*):
+### Spring Boot
+
+To use the filter in a Spring Boot application, add a `FilterRegistrationBean` to your root Spring class. For example:
+
+```java
+public class ExampleSpringApplication {
+    @Bean
+    public FilterRegistrationBean<JsonPFilter> jsonPFilter() {
+        FilterRegistrationBean<JsonPFilter> jsonPFilter = new FilterRegistrationBean<>();
+        jsonPFilter.setFilter(new JsonPFilter());
+        jsonPFilter.addUrlPatterns("/foo");
+
+        return jsonPFilter;
+    }
+}
+```
+
+Now any requests to */foo* will have their responses wrapped in *callback(...)*.
+
+## Callback Parameter
+
+The JSONP callback parameter defaults to "callback" (e.g. http://localhost:8080/foo?callback=bar). Override the `callbackParam` filter parameter to override the default.
+
+### web.xml
+
+To override the _callback_ parameter in a _web.xml_ file:
+
+```xml
+<filter>
+  ...
+  <init-param>
+    <param-name>callbackParam</param-name>
+    <param-value>calleybackey</param-value>
+  </init-param>
+</filter>
+```
+
+**Full Example**
 
 ```xml
 <filter>
@@ -42,4 +87,34 @@ Optionally configure the callback parameter name (defaults to *callback*):
 </filter-mapping>
 ```
 
-Now any requests to */foo* will have their responses wrapped in *callback(...)*.  In the second case, responses will be wrapped in *calleybackey(...)*.
+### Spring Boot
+
+To override the _callback_ parameter in a Spring Boot application:
+
+```java
+Map<String, String> parameters = new HashMap<>();
+parameters.put("callbackParam", "calleybackey");
+jsonPFilter.setInitParameters(parameters);
+```
+
+**Full Example**
+
+```java
+public class ExampleSpringApplication {
+    @Bean
+    public FilterRegistrationBean<JsonPFilter> jsonPFilter() {
+        FilterRegistrationBean<JsonPFilter> jsonPFilter = new FilterRegistrationBean<>();
+
+        jsonPFilter.setFilter(new JsonPFilter());
+        jsonPFilter.addUrlPatterns("/*");
+
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("callbackParam", "calleybackey");
+        jsonPFilter.setInitParameters(parameters);
+
+        return jsonPFilter;
+    }
+}
+```
+
+Now any requests to */foo* will have their responses wrapped in calleybackey(...).
